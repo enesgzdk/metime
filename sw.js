@@ -1,6 +1,6 @@
-const CACHE_NAME = 'ceyda-planner-v2';
+const CACHE_NAME = 'ceyda-planner-v4';
 
-self.addEventListener('install', (event) => {
+self.addEventListener('install', () => {
   self.skipWaiting();
 });
 
@@ -15,7 +15,6 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET' || event.request.url.includes('/api/')) return;
 
-  // Her zaman önce ağdan (GitHub'dan) en güncel dosyayı çek (Network-First)
   event.respondWith(
     fetch(event.request, { cache: 'no-store' })
       .then((res) => {
