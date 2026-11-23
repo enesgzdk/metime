@@ -1,0 +1,10 @@
+{
+  "name": "Me Time",
+  "short_name": "Ceyda Plan",
+  "description": "Günlük odak, gelecek planlayıcı, sonsuz tuval ve sepet panosu",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#FAF8F5",
+  "theme_color": "#FAF8F5"
+}
