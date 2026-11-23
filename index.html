@@ -61,28 +61,11 @@
     });
 
     if ('serviceWorker' in navigator) {
-      window.addEventListener('load', async () => {
-        try {
-          const reg = await navigator.serviceWorker.register('./sw.js?v=' + Date.now());
-          await reg.update();
-          reg.addEventListener('updatefound', () => {
-            const newWorker = reg.installing;
-            if (newWorker) {
-              newWorker.addEventListener('statechange', () => {
-                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                  window.location.reload();
-                }
-              });
-            }
-          });
-        } catch (_) {}
-      });
-      let refreshing = false;
-      navigator.serviceWorker.addEventListener('controllerchange', () => {
-        if (!refreshing) {
-          refreshing = true;
-          window.location.reload();
-        }
+      window.addEventListener('load', () => {
+        // Sabit sürüm parametresi kullan (Date.now() sonsuz döngüye sokar)
+        navigator.serviceWorker.register('./sw.js?v=4').then((reg) => {
+          reg.update();
+        }).catch(() => {});
       });
     }
   </script>
