@@ -39,6 +39,7 @@
   <style>
     body { background-color: #FAF8F5; color: #24221F; -webkit-tap-highlight-color: transparent; overscroll-behavior-y: none; }
     .card-shadow { box-shadow: 0 4px 20px -2px rgba(36, 34, 31, 0.05); }
+    input[type="range"] { accent-color: #5B7C67; }
     #infiniteCanvas { touch-action: none; cursor: crosshair; }
     ::-webkit-scrollbar { width: 5px; height: 5px; }
     ::-webkit-scrollbar-thumb { background: #DCD5C9; border-radius: 99px; }
@@ -62,7 +63,6 @@
 
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        // Sabit sürüm parametresi kullan (Date.now() sonsuz döngüye sokar)
         navigator.serviceWorker.register('./sw.js?v=4').then((reg) => {
           reg.update();
         }).catch(() => {});
@@ -98,12 +98,12 @@
       </div>
     </div>
 
-    <!-- Sekme Çubuğu -->
-    <nav class="max-w-5xl mx-auto px-4 sm:px-6 flex gap-1.5 overflow-x-auto pb-2.5 pt-1">
-      <button onclick="switchTab('today')" data-tab="today" class="tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-ink text-white transition shrink-0">☀️ Bugün</button>
-      <button onclick="switchTab('planner')" data-tab="planner" class="tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-white border border-[#E5DFD5] text-muted hover:text-ink transition shrink-0">📅 Takvim & Plan</button>
-      <button onclick="switchTab('canvas')" data-tab="canvas" class="tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-white border border-[#E5DFD5] text-muted hover:text-ink transition shrink-0">✒️ Sonsuz Tuval</button>
-      <button onclick="switchTab('wishlist')" data-tab="wishlist" class="tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-white border border-[#E5DFD5] text-muted hover:text-ink transition shrink-0">🛍️ Sepetim</button>
+    <!-- Sekme Çubuğu (Mobilde Kaydırmasız 4 Eşit Sütun) -->
+    <nav class="max-w-5xl mx-auto px-3 sm:px-6 grid grid-cols-4 sm:flex gap-1 sm:gap-1.5 pb-2.5 pt-1">
+      <button onclick="switchTab('today')" data-tab="today" class="tab-btn px-1.5 sm:px-4 py-2 rounded-xl text-[11px] sm:text-sm font-semibold bg-ink text-white transition text-center truncate">☀️ Bugün</button>
+      <button onclick="switchTab('planner')" data-tab="planner" class="tab-btn px-1.5 sm:px-4 py-2 rounded-xl text-[11px] sm:text-sm font-semibold bg-white border border-[#E5DFD5] text-muted hover:text-ink transition text-center truncate">📅 Takvim</button>
+      <button onclick="switchTab('canvas')" data-tab="canvas" class="tab-btn px-1.5 sm:px-4 py-2 rounded-xl text-[11px] sm:text-sm font-semibold bg-white border border-[#E5DFD5] text-muted hover:text-ink transition text-center truncate">✒️ Tuval</button>
+      <button onclick="switchTab('wishlist')" data-tab="wishlist" class="tab-btn px-1.5 sm:px-4 py-2 rounded-xl text-[11px] sm:text-sm font-semibold bg-white border border-[#E5DFD5] text-muted hover:text-ink transition text-center truncate">🛍️ Sepetim</button>
     </nav>
   </header>
 
@@ -132,12 +132,12 @@
       <form onsubmit="addTodayTask(event)" class="bg-white rounded-3xl p-4 border border-[#EAE4DA] card-shadow flex flex-col sm:flex-row gap-2.5">
         <input id="todayTitle" required type="text" placeholder="Bugün ne yapacaksın? (Örn: Kimya notlarını özetle)" class="flex-1 px-3.5 py-2.5 rounded-xl bg-cream border border-[#E5DFD5] text-sm focus:outline-none focus:border-sage" />
         <div class="flex gap-2">
-          <select id="todayPriority" class="px-3 py-2.5 rounded-xl bg-cream border border-[#E5DFD5] text-xs font-semibold text-ink focus:outline-none">
+          <select id="todayPriority" class="px-2.5 py-2.5 rounded-xl bg-cream border border-[#E5DFD5] text-xs font-semibold text-ink focus:outline-none">
             <option value="Yüksek">🔥 Yüksek</option>
             <option value="Orta" selected>⚡ Orta</option>
             <option value="Düşük">🌿 Düşük</option>
           </select>
-          <input id="todayCategory" list="catSuggestions" type="text" placeholder="Tür (Ders, Ev...)" class="w-32 sm:w-36 px-3 py-2.5 rounded-xl bg-cream border border-[#E5DFD5] text-xs font-medium focus:outline-none focus:border-sage" />
+          <input id="todayCategory" list="catSuggestions" type="text" placeholder="Tür (Ders, Ev...)" class="flex-1 sm:w-36 px-3 py-2.5 rounded-xl bg-cream border border-[#E5DFD5] text-xs font-medium focus:outline-none focus:border-sage" />
           <button type="submit" class="px-4 py-2.5 rounded-xl bg-sage hover:bg-sageDark text-white text-xs sm:text-sm font-semibold transition shrink-0">Ekle</button>
         </div>
       </form>
@@ -153,35 +153,32 @@
          SEKME 2: TAM AYLIK TAKVİM & PLANLAYICI
          ===================================================================== -->
     <section id="sec-planner" class="hidden space-y-5">
-      <!-- Takvim Kartı -->
-      <div class="bg-white rounded-3xl p-4 sm:p-6 border border-[#EAE4DA] card-shadow">
-        <div class="flex items-center justify-between mb-4">
-          <div class="flex items-center gap-2">
-            <button onclick="changeCalendarMonth(-1)" class="w-9 h-9 rounded-xl bg-sand hover:bg-[#E6DFD3] text-ink font-bold flex items-center justify-center transition">‹</button>
-            <h2 id="calMonthTitle" class="font-serif text-lg sm:text-xl font-semibold text-ink min-w-[150px] text-center capitalize">Kasım 2026</h2>
-            <button onclick="changeCalendarMonth(1)" class="w-9 h-9 rounded-xl bg-sand hover:bg-[#E6DFD3] text-ink font-bold flex items-center justify-center transition">›</button>
+      <div class="bg-white rounded-3xl p-3.5 sm:p-6 border border-[#EAE4DA] card-shadow">
+        <!-- Mobilde Taşmayan Esnek Takvim Üst Başlığı -->
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+          <div class="flex items-center gap-1.5 sm:gap-2">
+            <button onclick="changeCalendarMonth(-1)" class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-sand hover:bg-[#E6DFD3] text-ink font-bold flex items-center justify-center transition">‹</button>
+            <h2 id="calMonthTitle" class="font-serif text-base sm:text-xl font-semibold text-ink min-w-[115px] sm:min-w-[150px] text-center capitalize">Kasım 2026</h2>
+            <button onclick="changeCalendarMonth(1)" class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-sand hover:bg-[#E6DFD3] text-ink font-bold flex items-center justify-center transition">›</button>
           </div>
-          <div class="flex items-center gap-2">
-            <button onclick="jumpToTodayCalendar()" class="px-3 py-2 rounded-xl bg-sand text-xs font-semibold text-ink hover:opacity-80 transition">Bugün</button>
-            <button onclick="openPlanModal()" class="px-3.5 py-2 rounded-xl bg-sage hover:bg-sageDark text-white text-xs sm:text-sm font-semibold shadow-sm transition">+ Plan Ekle</button>
+          <div class="flex items-center gap-1.5 sm:gap-2">
+            <button onclick="jumpToTodayCalendar()" class="px-2.5 sm:px-3 py-2 rounded-xl bg-sand text-xs font-semibold text-ink hover:opacity-80 transition">Bugün</button>
+            <button onclick="openPlanModal()" class="px-3 sm:px-3.5 py-2 rounded-xl bg-sage hover:bg-sageDark text-white text-xs sm:text-sm font-semibold shadow-sm transition">+ Plan Ekle</button>
           </div>
         </div>
 
-        <!-- Haftanın Günleri -->
         <div class="grid grid-cols-7 gap-1 text-center text-[11px] font-bold text-muted uppercase pb-2 border-b border-[#F2EDE4]">
           <div>Pzt</div><div>Sal</div><div>Çar</div><div>Per</div><div>Cum</div><div>Cmt</div><div>Paz</div>
         </div>
 
-        <!-- Takvim Günleri Izgarası -->
-        <div id="calendarGrid" class="grid grid-cols-7 gap-1.5 pt-2"></div>
+        <div id="calendarGrid" class="grid grid-cols-7 gap-1 sm:gap-1.5 pt-2"></div>
       </div>
 
-      <!-- Seçili Günün Planları -->
       <div class="bg-white rounded-3xl p-4 sm:p-5 border border-[#EAE4DA] card-shadow space-y-3">
-        <div class="flex items-center justify-between border-b border-[#F2EDE4] pb-3">
+        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-[#F2EDE4] pb-3">
           <div>
             <span class="text-[11px] font-semibold uppercase tracking-wider text-sage">Seçili Gün Programı</span>
-            <h3 id="selectedDayTitle" class="font-serif text-lg font-semibold text-ink capitalize mt-0.5"></h3>
+            <h3 id="selectedDayTitle" class="font-serif text-base sm:text-lg font-semibold text-ink capitalize mt-0.5"></h3>
           </div>
           <button onclick="openPlanModal()" class="px-3 py-1.5 rounded-xl bg-sage/15 text-sageDark hover:bg-sage hover:text-white text-xs font-semibold transition">+ Bu Güne İş Ekle</button>
         </div>
@@ -231,16 +228,17 @@
     </section>
 
     <!-- =====================================================================
-         SEKME 4: SEPETİM / İSTEK PANOSU
+         SEKME 4: SEPETİM / KARAR MATRİSLİ İSTEK PANOSU
          ===================================================================== -->
     <section id="sec-wishlist" class="hidden space-y-5">
       <div class="flex flex-wrap items-center justify-between gap-3">
         <div class="flex items-center gap-2 overflow-x-auto pb-1">
-          <button onclick="setWishFilter('ALL')" data-wfilter="ALL" class="wfilter-btn px-3.5 py-1.5 rounded-full text-xs font-semibold bg-ink text-white transition">Tümü</button>
-          <button onclick="setWishFilter('Acil Alınacak')" data-wfilter="Acil Alınacak" class="wfilter-btn px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white border border-[#E5DFD5] text-muted transition">🔥 Acil</button>
-          <button onclick="setWishFilter('Yakın Zamanda')" data-wfilter="Yakın Zamanda" class="wfilter-btn px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white border border-[#E5DFD5] text-muted transition">⏳ Yakın Zamanda</button>
-          <button onclick="setWishFilter('Sonra Alınır')" data-wfilter="Sonra Alınır" class="wfilter-btn px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white border border-[#E5DFD5] text-muted transition">🌿 Sonra</button>
-          <button onclick="setWishFilter('PURCHASED')" data-wfilter="PURCHASED" class="wfilter-btn px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white border border-[#E5DFD5] text-muted transition">✅ Alınanlar</button>
+          <button onclick="setWishFilter('ALL')" data-wfilter="ALL" class="wfilter-btn px-3.5 py-1.5 rounded-full text-xs font-semibold bg-ink text-white transition shrink-0">Tümü</button>
+          <button onclick="setWishFilter('Acil Alınacak')" data-wfilter="Acil Alınacak" class="wfilter-btn px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white border border-[#E5DFD5] text-muted transition shrink-0">🔥 Acil</button>
+          <button onclick="setWishFilter('Yakın Zamanda')" data-wfilter="Yakın Zamanda" class="wfilter-btn px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white border border-[#E5DFD5] text-muted transition shrink-0">⏳ Yakın Zamanda</button>
+          <button onclick="setWishFilter('Sonra Alınır')" data-wfilter="Sonra Alınır" class="wfilter-btn px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white border border-[#E5DFD5] text-muted transition shrink-0">🌿 Sonra</button>
+          <button onclick="setWishFilter('Keyfi / Olsa da Olur')" data-wfilter="Keyfi / Olsa da Olur" class="wfilter-btn px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white border border-[#E5DFD5] text-muted transition shrink-0">✨ Keyfi</button>
+          <button onclick="setWishFilter('PURCHASED')" data-wfilter="PURCHASED" class="wfilter-btn px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white border border-[#E5DFD5] text-muted transition shrink-0">✅ Alınanlar</button>
         </div>
         <div class="flex items-center gap-2">
           <span id="wishTotalBadge" class="text-xs font-bold text-ink bg-white border border-[#E5DFD5] px-3 py-2 rounded-xl">Toplam: 0 ₺</span>
@@ -251,7 +249,7 @@
       <div id="wishGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
       <div id="wishEmpty" class="hidden bg-white rounded-3xl border border-[#EAE4DA] p-10 text-center card-shadow">
         <p class="font-serif text-base font-semibold text-ink">Sepet listesi boş</p>
-        <p class="text-xs text-muted mt-1">Almak istediğin ürünün linkini yapıştır, fiyatını ve görselini otomatik çekelim.</p>
+        <p class="text-xs text-muted mt-1">Almak istediğin ürünün linkini yapıştır; ihtiyaç, heves ve aciliyet puanıyla otomatik sıralayalım.</p>
       </div>
     </section>
 
@@ -266,15 +264,18 @@
     <option value="Alışveriş">
   </datalist>
 
-  <!-- YENİ GÜN UYARI MODALI -->
-  <div id="newDayModal" class="fixed inset-0 z-50 hidden bg-ink/40 backdrop-blur-sm flex items-center justify-center p-4">
+  <!-- ÖZEL POP-UP BİLDİRİM (TOAST) -->
+  <div id="toastContainer" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[70] flex flex-col items-center gap-2 pointer-events-none w-[90%] max-w-sm"></div>
+
+  <!-- ÖZEL POP-UP ONAY PENCERESİ (CONFIRM) -->
+  <div id="customConfirmModal" class="fixed inset-0 z-[60] hidden bg-ink/45 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="bg-cream w-full max-w-sm rounded-3xl border border-[#E5DFD5] shadow-2xl p-6 text-center">
-      <div class="w-12 h-12 rounded-2xl bg-sage/15 text-sage flex items-center justify-center mx-auto mb-3 text-xl">🌅</div>
-      <h3 class="font-serif text-xl font-semibold text-ink">Yeni güne başlansın mı?</h3>
-      <p class="text-xs text-muted mt-2 leading-relaxed">Onayladığında dünkü liste sıfırlanır ve eğer Takvim'de bugüne ait işlerin varsa otomatik olarak listene eklenir.</p>
+      <div id="confirmIcon" class="w-12 h-12 rounded-2xl bg-sage/15 text-sage flex items-center justify-center mx-auto mb-3 text-xl">✨</div>
+      <h3 id="confirmTitle" class="font-serif text-xl font-semibold text-ink">Emin misin?</h3>
+      <p id="confirmMessage" class="text-xs text-muted mt-2 leading-relaxed"></p>
       <div class="flex gap-2 mt-5">
-        <button onclick="document.getElementById('newDayModal').classList.add('hidden')" class="flex-1 py-2.5 rounded-xl bg-sand text-ink text-xs font-semibold">Şimdi Değil</button>
-        <button onclick="executeNewDayReset()" class="flex-1 py-2.5 rounded-xl bg-sage text-white text-xs font-semibold">Evet, Başla</button>
+        <button id="confirmCancelBtn" class="flex-1 py-2.5 rounded-xl bg-sand text-ink text-xs font-semibold hover:opacity-90 transition">Vazgeç</button>
+        <button id="confirmOkBtn" class="flex-1 py-2.5 rounded-xl bg-sage text-white text-xs font-semibold hover:bg-sageDark transition">Onayla</button>
       </div>
     </div>
   </div>
@@ -332,11 +333,11 @@
     </div>
   </div>
 
-  <!-- SEPET / ÜRÜN EKLEME MODALI -->
+  <!-- SEPET / ÜRÜN EKLEME MODALI (KARAR MATRİSİ HESAPLAMALI) -->
   <div id="wishModal" class="fixed inset-0 z-50 hidden bg-ink/40 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
-    <div class="bg-cream w-full max-w-md rounded-t-3xl sm:rounded-3xl border border-[#E5DFD5] shadow-2xl p-6 max-h-[90vh] overflow-y-auto">
+    <div class="bg-cream w-full max-w-md rounded-t-3xl sm:rounded-3xl border border-[#E5DFD5] shadow-2xl p-5 sm:p-6 max-h-[92vh] overflow-y-auto">
       <div class="flex items-center justify-between mb-4">
-        <h3 class="font-serif text-xl font-semibold text-ink">Sepete Ürün Ekle</h3>
+        <h3 id="wishModalTitle" class="font-serif text-xl font-semibold text-ink">Sepete Ürün Ekle</h3>
         <button onclick="closeWishModal()" class="w-8 h-8 rounded-full bg-sand text-muted">✕</button>
       </div>
 
@@ -367,11 +368,12 @@
           </div>
         </div>
         <div>
-          <label class="block text-xs font-semibold text-ink mb-1">Öncelik</label>
-          <select id="wTag" class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-[#E5DFD5] text-sm">
+          <label class="block text-xs font-semibold text-ink mb-1">Öncelik Etiketi</label>
+          <select id="wTag" onchange="updateWishScoreLabels()" class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-[#E5DFD5] text-sm">
             <option value="Acil Alınacak">🔥 Acil Alınacak</option>
             <option value="Yakın Zamanda" selected>⏳ Yakın Zamanda</option>
             <option value="Sonra Alınır">🌿 Sonra Alınır</option>
+            <option value="Keyfi / Olsa da Olur">✨ Keyfi / Olsa da Olur</option>
           </select>
         </div>
         <div class="grid grid-cols-2 gap-3">
@@ -384,6 +386,39 @@
             <input id="wImage" type="url" placeholder="https://..." class="w-full px-3.5 py-2 rounded-xl bg-white border border-[#E5DFD5] text-sm" />
           </div>
         </div>
+
+        <!-- Karar Matrisi Puanlama Alanı -->
+        <div class="bg-white p-4 rounded-2xl border border-[#E5DFD5] space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-ink">Karar Matrisi Puanlaması</span>
+            <span id="wLiveScore" class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-sage/15 text-sage">Önem Skoru: 0</span>
+          </div>
+
+          <div>
+            <div class="flex justify-between text-xs mb-1">
+              <span class="text-muted">Gerçek İhtiyaç Derecesi</span>
+              <span id="wValNeed" class="font-bold text-ink">5 / 10</span>
+            </div>
+            <input id="wNeed" type="range" min="1" max="10" value="5" oninput="updateWishScoreLabels()" class="w-full" />
+          </div>
+
+          <div>
+            <div class="flex justify-between text-xs mb-1">
+              <span class="text-muted">Heves / İsteme Seviyesi</span>
+              <span id="wValWant" class="font-bold text-ink">5 / 10</span>
+            </div>
+            <input id="wWant" type="range" min="1" max="10" value="5" oninput="updateWishScoreLabels()" class="w-full" />
+          </div>
+
+          <div>
+            <div class="flex justify-between text-xs mb-1">
+              <span class="text-muted">Zamanlama / Aciliyet</span>
+              <span id="wValUrgency" class="font-bold text-ink">3 / 5</span>
+            </div>
+            <input id="wUrgency" type="range" min="1" max="5" value="3" oninput="updateWishScoreLabels()" class="w-full" />
+          </div>
+        </div>
+
         <div class="flex gap-2 pt-2">
           <button type="button" onclick="closeWishModal()" class="flex-1 py-2.5 rounded-xl bg-sand text-xs font-semibold">Vazgeç</button>
           <button type="submit" class="flex-1 py-2.5 rounded-xl bg-sage text-white text-xs font-semibold">Kaydet</button>
@@ -415,12 +450,66 @@
     let wishItems = JSON.parse(localStorage.getItem(LS_KEYS.wishlist) || '[]');
     let wishFilter = 'ALL';
 
+    // =========================================================================
+    // ÖZEL POP-UP (TOAST & CONFIRM) SİSTEMİ
+    // =========================================================================
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      const bgClass = type === 'error'
+        ? 'bg-rose-600 text-white'
+        : type === 'info'
+        ? 'bg-ink text-white'
+        : 'bg-sage text-white';
+
+      toast.className = `${bgClass} px-4 py-3 rounded-2xl shadow-xl text-xs font-semibold flex items-center gap-2 transition-all duration-300 translate-y-4 opacity-0 pointer-events-auto`;
+      toast.innerHTML = `<span>${type === 'error' ? '⚠️' : '✨'}</span><span>${message}</span>`;
+      container.appendChild(toast);
+
+      requestAnimationFrame(() => {
+        toast.classList.remove('translate-y-4', 'opacity-0');
+      });
+
+      setTimeout(() => {
+        toast.classList.add('translate-y-2', 'opacity-0');
+        setTimeout(() => toast.remove(), 300);
+      }, 2800);
+    }
+
+    function customConfirm({ title, message, icon = '✨', okText = 'Evet, Onayla', cancelText = 'Vazgeç', isDanger = false }) {
+      return new Promise((resolve) => {
+        const modal = document.getElementById('customConfirmModal');
+        document.getElementById('confirmIcon').textContent = icon;
+        document.getElementById('confirmTitle').textContent = title;
+        document.getElementById('confirmMessage').textContent = message;
+
+        const okBtn = document.getElementById('confirmOkBtn');
+        const cancelBtn = document.getElementById('confirmCancelBtn');
+        okBtn.textContent = okText;
+        cancelBtn.textContent = cancelText;
+        okBtn.className = isDanger
+          ? 'flex-1 py-2.5 rounded-xl bg-rose-600 text-white text-xs font-semibold hover:bg-rose-700 transition'
+          : 'flex-1 py-2.5 rounded-xl bg-sage text-white text-xs font-semibold hover:bg-sageDark transition';
+
+        modal.classList.remove('hidden');
+
+        const cleanup = (result) => {
+          modal.classList.add('hidden');
+          okBtn.onclick = null;
+          cancelBtn.onclick = null;
+          resolve(result);
+        };
+
+        okBtn.onclick = () => cleanup(true);
+        cancelBtn.onclick = () => cleanup(false);
+      });
+    }
+
     const getTodayISO = () => {
       const d = new Date();
       return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
     };
 
-    // Takvim Durumu
     let calViewYear = new Date().getFullYear();
     let calViewMonth = new Date().getMonth();
     let selectedCalDate = getTodayISO();
@@ -440,7 +529,6 @@
       );
     }
 
-    // Manuel veya Otomatik Sürüm + Veri Yenileme
     async function forceAppUpdate() {
       setSyncStatus('syncing', 'Güncelleniyor...');
       if ('serviceWorker' in navigator) {
@@ -452,6 +540,7 @@
         for (const k of keys) await caches.delete(k);
       }
       await bootstrapFromCloud();
+      showToast('Tüm veriler ve sürüm güncellendi!');
     }
 
     async function cloudPost(bodyObj) {
@@ -518,9 +607,9 @@
       });
       document.querySelectorAll('.tab-btn').forEach(btn => {
         if (btn.dataset.tab === tabName) {
-          btn.className = 'tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-ink text-white transition shrink-0';
+          btn.className = 'tab-btn px-1.5 sm:px-4 py-2 rounded-xl text-[11px] sm:text-sm font-semibold bg-ink text-white transition text-center truncate';
         } else {
-          btn.className = 'tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-white border border-[#E5DFD5] text-muted hover:text-ink transition shrink-0';
+          btn.className = 'tab-btn px-1.5 sm:px-4 py-2 rounded-xl text-[11px] sm:text-sm font-semibold bg-white border border-[#E5DFD5] text-muted hover:text-ink transition text-center truncate';
         }
       });
       if (tabName === 'canvas') resizeCanvas();
@@ -530,7 +619,7 @@
     // =========================================================================
     // 1. BUGÜN MODÜLÜ
     // =========================================================================
-    function checkNewDayPrompt() {
+    async function checkNewDayPrompt() {
       const todayStr = getTodayISO();
       const savedDate = localStorage.getItem(LS_KEYS.lastDate);
       if (!savedDate) {
@@ -538,18 +627,31 @@
         return;
       }
       if (savedDate !== todayStr) {
-        document.getElementById('newDayModal').classList.remove('hidden');
+        const ok = await customConfirm({
+          icon: '🌅',
+          title: 'Yeni güne başlansın mı?',
+          message: "Onayladığında dünkü liste sıfırlanır ve Takvim'de bugüne ait işlerin varsa otomatik olarak listene eklenir.",
+          okText: 'Evet, Başla',
+          cancelText: 'Şimdi Değil'
+        });
+        if (ok) await executeNewDayReset();
       }
     }
 
-    function confirmNewDayReset() {
-      document.getElementById('newDayModal').classList.remove('hidden');
+    async function confirmNewDayReset() {
+      const ok = await customConfirm({
+        icon: '🌅',
+        title: 'Yeni güne başlansın mı?',
+        message: "Mevcut günlük liste sıfırlanacak ve Takvim'de bugüne ait planlanmış işler varsa listene aktarılacak.",
+        okText: 'Evet, Sıfırla ve Başla',
+        cancelText: 'Vazgeç'
+      });
+      if (ok) await executeNewDayReset();
     }
 
     async function executeNewDayReset() {
       const todayStr = getTodayISO();
       localStorage.setItem(LS_KEYS.lastDate, todayStr);
-      document.getElementById('newDayModal').classList.add('hidden');
 
       const todaysPlans = plannedTasks.filter(p => p.plan_date === todayStr);
       todayTasks = todaysPlans.map((p, idx) => ({
@@ -563,6 +665,7 @@
 
       localStorage.setItem(LS_KEYS.today, JSON.stringify(todayTasks));
       renderToday();
+      showToast('Yeni gün hazırlandı!');
 
       await cloudPost({ entity: 'today', op: 'clear_all' });
       if (todayTasks.length > 0) {
@@ -727,7 +830,7 @@
 
       let cellsHtml = '';
       for (let i = 0; i < startWeekday; i++) {
-        cellsHtml += `<div class="h-14 sm:h-16 rounded-2xl bg-cream/40"></div>`;
+        cellsHtml += `<div class="h-12 sm:h-16 rounded-2xl bg-cream/40"></div>`;
       }
 
       for (let day = 1; day <= daysInMonth; day++) {
@@ -742,11 +845,11 @@
 
         cellsHtml += `
           <button onclick="selectCalendarDay('${dateStr}')"
-            class="h-14 sm:h-16 rounded-2xl border p-1.5 flex flex-col items-center justify-between transition ${cellClass}">
+            class="h-12 sm:h-16 rounded-2xl border p-1 sm:p-1.5 flex flex-col items-center justify-between transition ${cellClass}">
             <span class="text-xs sm:text-sm font-semibold">${day}</span>
             ${taskCount > 0
-              ? `<span class="px-1.5 py-0.5 rounded-full text-[10px] font-bold ${isSelected ? 'bg-sage text-white' : 'bg-terracotta/15 text-terracotta'}">${taskCount} iş</span>`
-              : `<span class="h-3"></span>`}
+              ? `<span class="px-1 sm:px-1.5 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold leading-none ${isSelected ? 'bg-sage text-white' : 'bg-terracotta/15 text-terracotta'}">${taskCount} iş</span>`
+              : `<span class="h-2.5"></span>`}
           </button>
         `;
       }
@@ -843,6 +946,7 @@
       localStorage.setItem(LS_KEYS.planned, JSON.stringify(plannedTasks));
       closePlanModal();
       renderCalendar();
+      showToast('Plan kaydedildi!');
       await cloudPost({ entity: 'planned', op: 'upsert', payload: obj });
     }
 
@@ -858,6 +962,7 @@
       });
       localStorage.setItem(LS_KEYS.planned, JSON.stringify(plannedTasks));
       renderCalendar();
+      showToast('Plan yeni tarihe taşındı.');
       if (target) await cloudPost({ entity: 'planned', op: 'upsert', payload: target });
     }
 
@@ -875,14 +980,23 @@
       todayTasks.push(task);
       localStorage.setItem(LS_KEYS.today, JSON.stringify(todayTasks));
       renderToday();
+      showToast(`"${p.title}" Bugün listesine eklendi!`);
       await cloudPost({ entity: 'today', op: 'upsert', payload: task });
-      alert(`"${p.title}" Bugün listesine eklendi!`);
     }
 
     async function deletePlannedTask(id) {
+      const ok = await customConfirm({
+        icon: '🗑️',
+        title: 'Planı Sil',
+        message: 'Bu planı takvimden kaldırmak istediğine emin misin?',
+        okText: 'Sil',
+        isDanger: true
+      });
+      if (!ok) return;
       plannedTasks = plannedTasks.filter(x => x.id !== id);
       localStorage.setItem(LS_KEYS.planned, JSON.stringify(plannedTasks));
       renderCalendar();
+      showToast('Plan silindi.', 'info');
       await cloudPost({ entity: 'planned', op: 'delete', id });
     }
 
@@ -1101,20 +1215,56 @@
     }
 
     async function clearInfiniteCanvas() {
-      if (!confirm('Tuvaldeki tüm çizimler temizlensin mi?')) return;
+      const ok = await customConfirm({
+        icon: '🧹',
+        title: 'Tuvali Sıfırla',
+        message: 'Sonsuz tuvaldeki tüm çizimlerin silinecek. Emin misin?',
+        okText: 'Evet, Temizle',
+        isDanger: true
+      });
+      if (!ok) return;
       canvasStrokes = [];
       redrawCanvas();
       scheduleCanvasSync();
+      showToast('Tuval temizlendi.', 'info');
     }
 
     // =========================================================================
-    // 4. SEPETİM / İSTEK PANOSU
+    // 4. SEPETİM / KARAR MATRİSLİ İSTEK PANOSU
     // =========================================================================
+    const TAG_WEIGHTS = {
+      'Acil Alınacak': 15,
+      'Yakın Zamanda': 8,
+      'Sonra Alınır': 2,
+      'Keyfi / Olsa da Olur': 0
+    };
+
+    function calculateWishScore(item) {
+      const need = Number(item.need) || 5;
+      const want = Number(item.want) || 5;
+      const urgency = Number(item.urgency) || 3;
+      const tagBonus = TAG_WEIGHTS[item.tag] || 0;
+      return Math.round((need * 3) + (want * 2) + (urgency * 4) + tagBonus);
+    }
+
+    function updateWishScoreLabels() {
+      const need = document.getElementById('wNeed').value;
+      const want = document.getElementById('wWant').value;
+      const urgency = document.getElementById('wUrgency').value;
+      const tag = document.getElementById('wTag').value;
+      document.getElementById('wValNeed').textContent = `${need} / 10`;
+      document.getElementById('wValWant').textContent = `${want} / 10`;
+      document.getElementById('wValUrgency').textContent = `${urgency} / 5`;
+      const score = calculateWishScore({ need, want, urgency, tag });
+      document.getElementById('wLiveScore').textContent = `Önem Skoru: ${score}`;
+    }
+
     let wDebounce = null;
     function openWishModal(item = null) {
       document.getElementById('wDropdown').classList.add('hidden');
       document.getElementById('wSmartStatus').classList.add('hidden');
       document.getElementById('wSmartInput').value = '';
+      document.getElementById('wishModalTitle').textContent = item ? 'Ürünü Düzenle' : 'Sepete Ürün Ekle';
       document.getElementById('wEditId').value = item ? item.id : '';
       document.getElementById('wTitle').value = item ? item.title : '';
       document.getElementById('wPrice').value = item ? (item.price || '') : '';
@@ -1122,6 +1272,10 @@
       document.getElementById('wTag').value = item ? (item.tag || 'Yakın Zamanda') : 'Yakın Zamanda';
       document.getElementById('wLink').value = item ? (item.link || '') : '';
       document.getElementById('wImage').value = item ? (item.image || '') : '';
+      document.getElementById('wNeed').value = item ? (item.need || 5) : 5;
+      document.getElementById('wWant').value = item ? (item.want || 5) : 5;
+      document.getElementById('wUrgency').value = item ? (item.urgency || 3) : 3;
+      updateWishScoreLabels();
       document.getElementById('wishModal').classList.remove('hidden');
     }
 
@@ -1201,6 +1355,9 @@
         tag: document.getElementById('wTag').value,
         link: document.getElementById('wLink').value.trim(),
         image: document.getElementById('wImage').value.trim(),
+        need: Number(document.getElementById('wNeed').value),
+        want: Number(document.getElementById('wWant').value),
+        urgency: Number(document.getElementById('wUrgency').value),
         purchased: existing ? existing.purchased : false
       };
       if (editId) wishItems = wishItems.map(x => x.id === editId ? obj : x);
@@ -1209,6 +1366,7 @@
       localStorage.setItem(LS_KEYS.wishlist, JSON.stringify(wishItems));
       closeWishModal();
       renderWishlist();
+      showToast('Ürün sepete kaydedildi!');
       await cloudPost({ entity: 'wishlist', op: 'upsert', payload: obj });
     }
 
@@ -1227,10 +1385,18 @@
     }
 
     async function deleteWishItem(id) {
-      if (!confirm('Bu ürünü silmek istediğine emin misin?')) return;
+      const ok = await customConfirm({
+        icon: '🛍️',
+        title: 'Ürünü Sil',
+        message: 'Bu ürünü sepet listenden kaldırmak istediğine emin misin?',
+        okText: 'Sil',
+        isDanger: true
+      });
+      if (!ok) return;
       wishItems = wishItems.filter(w => w.id !== id);
       localStorage.setItem(LS_KEYS.wishlist, JSON.stringify(wishItems));
       renderWishlist();
+      showToast('Ürün silindi.', 'info');
       await cloudPost({ entity: 'wishlist', op: 'delete', id });
     }
 
@@ -1238,8 +1404,8 @@
       wishFilter = f;
       document.querySelectorAll('.wfilter-btn').forEach(btn => {
         btn.className = btn.dataset.wfilter === f
-          ? 'wfilter-btn px-3.5 py-1.5 rounded-full text-xs font-semibold bg-ink text-white transition'
-          : 'wfilter-btn px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white border border-[#E5DFD5] text-muted transition';
+          ? 'wfilter-btn px-3.5 py-1.5 rounded-full text-xs font-semibold bg-ink text-white transition shrink-0'
+          : 'wfilter-btn px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white border border-[#E5DFD5] text-muted transition shrink-0';
       });
       renderWishlist();
     }
@@ -1247,11 +1413,14 @@
     function renderWishlist() {
       const grid = document.getElementById('wishGrid');
       const empty = document.getElementById('wishEmpty');
-      const filtered = wishItems.filter(i => {
+      let filtered = wishItems.filter(i => {
         if (wishFilter === 'PURCHASED') return i.purchased;
         if (i.purchased) return false;
         return wishFilter === 'ALL' || i.tag === wishFilter;
       });
+
+      // Önem skoruna göre yüksekten düşüğe sırala
+      filtered.sort((a, b) => calculateWishScore(b) - calculateWishScore(a));
 
       const total = filtered.reduce((s, i) => s + (Number(i.price) || 0), 0);
       document.getElementById('wishTotalBadge').textContent = `Toplam: ${total.toLocaleString('tr-TR')} ₺`;
@@ -1263,31 +1432,46 @@
       }
       empty.classList.add('hidden');
 
-      grid.innerHTML = filtered.map(item => `
-        <div class="bg-white rounded-3xl border border-[#EAE4DA] overflow-hidden card-shadow flex flex-col justify-between ${item.purchased ? 'opacity-65' : ''}">
-          <div>
-            <div class="relative">
-              ${item.image
-                ? `<img src="${item.image}" class="w-full h-40 object-contain bg-white p-3 border-b border-[#F0EAE1]" onerror="this.style.display='none'" />`
-                : `<div class="w-full h-40 bg-sand/60 flex items-center justify-center text-muted text-xs border-b border-[#F0EAE1]">Görsel Yok</div>`}
-              <span class="absolute top-3 right-3 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-cream/95 border border-[#E5DFD5] text-ink">${item.tag}</span>
+      grid.innerHTML = filtered.map((item, idx) => {
+        const score = calculateWishScore(item);
+        const need = item.need || 5;
+        const want = item.want || 5;
+        const urgency = item.urgency || 3;
+
+        return `
+          <div class="bg-white rounded-3xl border border-[#EAE4DA] overflow-hidden card-shadow flex flex-col justify-between ${item.purchased ? 'opacity-65' : ''}">
+            <div>
+              <div class="relative">
+                ${item.image
+                  ? `<img src="${item.image}" class="w-full h-40 object-contain bg-white p-3 border-b border-[#F0EAE1]" onerror="this.style.display='none'" />`
+                  : `<div class="w-full h-40 bg-sand/60 flex items-center justify-center text-muted text-xs border-b border-[#F0EAE1]">Görsel Yok</div>`}
+                <span class="absolute top-3 left-3 px-2.5 py-1 rounded-full text-[11px] font-bold bg-ink/85 text-white backdrop-blur-sm">
+                  #${idx + 1} · Skor ${score}
+                </span>
+                <span class="absolute top-3 right-3 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-cream/95 border border-[#E5DFD5] text-ink">${item.tag}</span>
+              </div>
+              <div class="p-4">
+                <div class="text-[11px] font-semibold text-sage uppercase">${item.category}</div>
+                <h4 class="font-semibold text-sm text-ink mt-0.5 line-clamp-2 ${item.purchased ? 'line-through' : ''}">${item.title}</h4>
+                <div class="text-base font-bold text-ink mt-2">${item.price ? Number(item.price).toLocaleString('tr-TR') + ' ₺' : 'Fiyat Girilmedi'}</div>
+                <div class="flex items-center gap-3 mt-3 pt-2.5 border-t border-[#F3EFE8] text-[11px] text-muted">
+                  <span>İhtiyaç: <strong class="text-ink">${need}/10</strong></span>
+                  <span>Heves: <strong class="text-ink">${want}/10</strong></span>
+                  <span>Aciliyet: <strong class="text-ink">${urgency}/5</strong></span>
+                </div>
+              </div>
             </div>
-            <div class="p-4">
-              <div class="text-[11px] font-semibold text-sage uppercase">${item.category}</div>
-              <h4 class="font-semibold text-sm text-ink mt-0.5 line-clamp-2 ${item.purchased ? 'line-through' : ''}">${item.title}</h4>
-              <div class="text-base font-bold text-ink mt-2">${item.price ? Number(item.price).toLocaleString('tr-TR') + ' ₺' : 'Fiyat Girilmedi'}</div>
+            <div class="px-4 pb-4 flex items-center gap-1.5">
+              <button onclick="toggleWishPurchased('${item.id}')" class="flex-1 py-2 rounded-xl text-xs font-semibold ${item.purchased ? 'bg-sand text-ink' : 'bg-sage/15 text-sageDark hover:bg-sage hover:text-white'} transition">
+                ${item.purchased ? '↩️ Geri Al' : '✓ Alındı'}
+              </button>
+              ${item.link ? `<a href="${item.link}" target="_blank" rel="noopener" class="py-2 px-3 rounded-xl bg-sand text-ink text-xs font-semibold">Link ↗</a>` : ''}
+              <button onclick='openWishModal(${JSON.stringify(item).replace(/'/g, "&#39;")})' class="p-2 rounded-xl bg-sand text-xs">✎</button>
+              <button onclick="deleteWishItem('${item.id}')" class="p-2 rounded-xl bg-rose-50 text-rose-600 text-xs">✕</button>
             </div>
           </div>
-          <div class="px-4 pb-4 flex items-center gap-1.5">
-            <button onclick="toggleWishPurchased('${item.id}')" class="flex-1 py-2 rounded-xl text-xs font-semibold ${item.purchased ? 'bg-sand text-ink' : 'bg-sage/15 text-sageDark hover:bg-sage hover:text-white'} transition">
-              ${item.purchased ? '↩️ Geri Al' : '✓ Alındı'}
-            </button>
-            ${item.link ? `<a href="${item.link}" target="_blank" rel="noopener" class="py-2 px-3 rounded-xl bg-sand text-ink text-xs font-semibold">Link ↗</a>` : ''}
-            <button onclick='openWishModal(${JSON.stringify(item).replace(/'/g, "&#39;")})' class="p-2 rounded-xl bg-sand text-xs">✎</button>
-            <button onclick="deleteWishItem('${item.id}')" class="p-2 rounded-xl bg-rose-50 text-rose-600 text-xs">✕</button>
-          </div>
-        </div>
-      `).join('');
+        `;
+      }).join('');
     }
 
     // Başlangıç
