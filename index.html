@@ -7,9 +7,9 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <title>Me Time</title>
+  <link rel="manifest" href="./manifest.json?v=3">
   <link rel="icon" type="image/svg+xml" href="./favicon.svg?v=3">
-  <link id="appleTouchIcon" rel="apple-touch-icon" href="./favicon.svg?v=3">avicon.ico">
-  <link rel="apple-touch-icon" href="./icon-512.png">
+  <link id="appleTouchIcon" rel="apple-touch-icon" href="./favicon.svg?v=3">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="theme-color" content="#FAF8F5">
@@ -43,8 +43,23 @@
     ::-webkit-scrollbar { width: 5px; height: 5px; }
     ::-webkit-scrollbar-thumb { background: #DCD5C9; border-radius: 99px; }
   </style>
-  <!-- Yeni Commit / Sürüm Geldiğinde Mobil & Masaüstünde Otomatik Güncelleme -->
+  <!-- iPad / iPhone Ana Ekran PNG İkon Üretici & Otomatik Güncelleme -->
   <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      const img = new Image();
+      img.onload = () => {
+        const c = document.createElement('canvas');
+        c.width = 512;
+        c.height = 512;
+        const ctx = c.getContext('2d');
+        ctx.drawImage(img, 0, 0, 512, 512);
+        const pngUrl = c.toDataURL('image/png');
+        const appleLink = document.getElementById('appleTouchIcon');
+        if (appleLink) appleLink.href = pngUrl;
+      };
+      img.src = './favicon.svg?v=3';
+    });
+
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', async () => {
         try {
@@ -79,7 +94,7 @@
     <div class="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
       <div class="flex items-center gap-3">
         <div class="w-9 h-9 rounded-xl bg-sage flex items-center justify-center text-white shadow-sm overflow-hidden">
-          <img src="./favicon.ico" class="w-full h-full object-cover" alt="Logo" onerror="this.outerHTML='<svg class=\'w-5 h-5\' fill=\'none\' stroke=\'currentColor\' stroke-width=\'2\' viewBox=\'0 0 24 24\'><path stroke-linecap=\'round\' stroke-linejoin=\'round\' d=\'M12 6v6l4 2m6-2a10 10 0 11-20 0 10 10 0 0120 0z\'/></svg>'">
+          <img src="./favicon.svg?v=3" class="w-full h-full object-cover" alt="Me Time Logo" onerror="this.outerHTML='<svg class=\'w-5 h-5\' fill=\'none\' stroke=\'currentColor\' stroke-width=\'2\' viewBox=\'0 0 24 24\'><path stroke-linecap=\'round\' stroke-linejoin=\'round\' d=\'M12 6v6l4 2m6-2a10 10 0 11-20 0 10 10 0 0120 0z\'/></svg>'">
         </div>
         <div>
           <h1 class="font-serif text-lg sm:text-xl font-semibold tracking-tight text-ink leading-none">Me Time</h1>
@@ -716,14 +731,12 @@
 
       const grid = document.getElementById('calendarGrid');
       const firstDayObj = new Date(calViewYear, calViewMonth, 1);
-      // Pazartesi = 0 ... Pazar = 6
       let startWeekday = firstDayObj.getDay() - 1;
       if (startWeekday < 0) startWeekday = 6;
 
       const daysInMonth = new Date(calViewYear, calViewMonth + 1, 0).getDate();
       const todayISO = getTodayISO();
 
-      // Tarihe göre iş sayılarını haritala
       const countByDate = {};
       plannedTasks.forEach(p => {
         countByDate[p.plan_date] = (countByDate[p.plan_date] || 0) + 1;
