@@ -3,8 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
   <title>Me Time</title>
-  <link rel="manifest" href="./manifest.json">
+  <link rel="manifest" href="./manifest.json?v=2">
+  <link rel="icon" type="image/png" sizes="32x32" href="./favicon.ico">
+  <link rel="apple-touch-icon" href="./icon-512.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="theme-color" content="#FAF8F5">
@@ -34,11 +39,38 @@
   <style>
     body { background-color: #FAF8F5; color: #24221F; -webkit-tap-highlight-color: transparent; overscroll-behavior-y: none; }
     .card-shadow { box-shadow: 0 4px 20px -2px rgba(36, 34, 31, 0.05); }
-    .dragging { opacity: 0.45; transform: scale(0.98); }
     #infiniteCanvas { touch-action: none; cursor: crosshair; }
     ::-webkit-scrollbar { width: 5px; height: 5px; }
     ::-webkit-scrollbar-thumb { background: #DCD5C9; border-radius: 99px; }
   </style>
+  <!-- Yeni Commit / Sürüm Geldiğinde Mobil & Masaüstünde Otomatik Güncelleme -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', async () => {
+        try {
+          const reg = await navigator.serviceWorker.register('./sw.js?v=' + Date.now());
+          await reg.update();
+          reg.addEventListener('updatefound', () => {
+            const newWorker = reg.installing;
+            if (newWorker) {
+              newWorker.addEventListener('statechange', () => {
+                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                  window.location.reload();
+                }
+              });
+            }
+          });
+        } catch (_) {}
+      });
+      let refreshing = false;
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (!refreshing) {
+          refreshing = true;
+          window.location.reload();
+        }
+      });
+    }
+  </script>
 </head>
 <body class="min-h-screen pb-24 select-none sm:select-auto">
 
@@ -46,10 +78,8 @@
   <header class="sticky top-0 z-30 bg-cream/90 backdrop-blur-md border-b border-[#EAE4DA]">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
       <div class="flex items-center gap-3">
-        <div class="w-9 h-9 rounded-xl bg-sage flex items-center justify-center text-white shadow-sm">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2m6-2a10 10 0 11-20 0 10 10 0 0120 0z"/>
-          </svg>
+        <div class="w-9 h-9 rounded-xl bg-sage flex items-center justify-center text-white shadow-sm overflow-hidden">
+          <img src="./favicon.ico" class="w-full h-full object-cover" alt="Logo" onerror="this.outerHTML='<svg class=\'w-5 h-5\' fill=\'none\' stroke=\'currentColor\' stroke-width=\'2\' viewBox=\'0 0 24 24\'><path stroke-linecap=\'round\' stroke-linejoin=\'round\' d=\'M12 6v6l4 2m6-2a10 10 0 11-20 0 10 10 0 0120 0z\'/></svg>'">
         </div>
         <div>
           <h1 class="font-serif text-lg sm:text-xl font-semibold tracking-tight text-ink leading-none">Me Time</h1>
@@ -62,7 +92,7 @@
 
       <div class="flex items-center gap-2">
         <span id="headerDateBadge" class="hidden sm:inline-block text-xs font-semibold text-muted bg-sand px-3 py-1.5 rounded-xl"></span>
-        <button onclick="bootstrapFromCloud()" class="p-2 rounded-xl bg-white border border-[#E5DFD5] text-ink hover:bg-sand transition" title="Buluttan Yenile">
+        <button onclick="forceAppUpdate()" class="p-2 rounded-xl bg-white border border-[#E5DFD5] text-ink hover:bg-sand transition" title="En Son Sürümü ve Verileri Çek">
           <svg class="w-4 h-4 text-sage" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
           </svg>
@@ -73,7 +103,7 @@
     <!-- Sekme Çubuğu -->
     <nav class="max-w-5xl mx-auto px-4 sm:px-6 flex gap-1.5 overflow-x-auto pb-2.5 pt-1">
       <button onclick="switchTab('today')" data-tab="today" class="tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-ink text-white transition shrink-0">☀️ Bugün</button>
-      <button onclick="switchTab('planner')" data-tab="planner" class="tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-white border border-[#E5DFD5] text-muted hover:text-ink transition shrink-0">📅 Planlayıcı</button>
+      <button onclick="switchTab('planner')" data-tab="planner" class="tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-white border border-[#E5DFD5] text-muted hover:text-ink transition shrink-0">📅 Takvim & Plan</button>
       <button onclick="switchTab('canvas')" data-tab="canvas" class="tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-white border border-[#E5DFD5] text-muted hover:text-ink transition shrink-0">✒️ Sonsuz Tuval</button>
       <button onclick="switchTab('wishlist')" data-tab="wishlist" class="tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-white border border-[#E5DFD5] text-muted hover:text-ink transition shrink-0">🛍️ Sepetim</button>
     </nav>
@@ -82,10 +112,9 @@
   <main class="max-w-5xl mx-auto px-4 sm:px-6 pt-5">
 
     <!-- =====================================================================
-         SEKME 1: BUGÜN (TODO, PROGRESS BAR, SÜRÜKLE-BIRAK, YENİ GÜN RESET)
+         SEKME 1: BUGÜN
          ===================================================================== -->
     <section id="sec-today" class="space-y-5">
-      <!-- İlerleme Kartı -->
       <div class="bg-white rounded-3xl p-5 border border-[#EAE4DA] card-shadow">
         <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
           <div>
@@ -94,7 +123,7 @@
           </div>
           <div class="flex items-center gap-2">
             <span id="todayProgressPercent" class="text-lg font-bold text-sage">%0</span>
-            <button onclick="confirmNewDayReset(true)" class="px-3 py-1.5 rounded-xl bg-sand hover:bg-[#E6DFD3] text-xs font-semibold text-ink transition">🌅 Yeni Güne Başla</button>
+            <button onclick="confirmNewDayReset()" class="px-3 py-1.5 rounded-xl bg-sand hover:bg-[#E6DFD3] text-xs font-semibold text-ink transition">🌅 Yeni Güne Başla</button>
           </div>
         </div>
         <div class="w-full h-3 bg-sand rounded-full overflow-hidden">
@@ -102,7 +131,6 @@
         </div>
       </div>
 
-      <!-- Hızlı Görev Ekleme -->
       <form onsubmit="addTodayTask(event)" class="bg-white rounded-3xl p-4 border border-[#EAE4DA] card-shadow flex flex-col sm:flex-row gap-2.5">
         <input id="todayTitle" required type="text" placeholder="Bugün ne yapacaksın? (Örn: Kimya notlarını özetle)" class="flex-1 px-3.5 py-2.5 rounded-xl bg-cream border border-[#E5DFD5] text-sm focus:outline-none focus:border-sage" />
         <div class="flex gap-2">
@@ -116,38 +144,58 @@
         </div>
       </form>
 
-      <!-- Görev Listesi -->
       <div id="todayList" class="space-y-2.5"></div>
       <div id="todayEmpty" class="hidden bg-white rounded-3xl border border-[#EAE4DA] p-10 text-center card-shadow">
         <p class="font-serif text-base font-semibold text-ink">Bugün için henüz görev eklenmedi</p>
-        <p class="text-xs text-muted mt-1">Yukarıdan ekleyebilir veya Planlayıcı sekmesindeki bugüne ait işleri aktarabilirsin.</p>
+        <p class="text-xs text-muted mt-1">Yukarıdan ekleyebilir veya Takvim sekmesindeki bugüne ait işleri aktarabilirsin.</p>
       </div>
     </section>
 
     <!-- =====================================================================
-         SEKME 2: PLANLAYICI (GELECEK GÜNLER, SAAT, SÜRE, GÜN DEĞİŞTİRME)
+         SEKME 2: TAM AYLIK TAKVİM & PLANLAYICI
          ===================================================================== -->
     <section id="sec-planner" class="hidden space-y-5">
-      <div class="flex items-center justify-between">
-        <div>
-          <h2 class="font-serif text-xl font-semibold text-ink">Gelecek Günler Planı</h2>
-          <p class="text-xs text-muted">Önündeki günleri şimdiden düzenle, istediğin zaman başka güne kaydır.</p>
+      <!-- Takvim Kartı -->
+      <div class="bg-white rounded-3xl p-4 sm:p-6 border border-[#EAE4DA] card-shadow">
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center gap-2">
+            <button onclick="changeCalendarMonth(-1)" class="w-9 h-9 rounded-xl bg-sand hover:bg-[#E6DFD3] text-ink font-bold flex items-center justify-center transition">‹</button>
+            <h2 id="calMonthTitle" class="font-serif text-lg sm:text-xl font-semibold text-ink min-w-[150px] text-center capitalize">Kasım 2026</h2>
+            <button onclick="changeCalendarMonth(1)" class="w-9 h-9 rounded-xl bg-sand hover:bg-[#E6DFD3] text-ink font-bold flex items-center justify-center transition">›</button>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="jumpToTodayCalendar()" class="px-3 py-2 rounded-xl bg-sand text-xs font-semibold text-ink hover:opacity-80 transition">Bugün</button>
+            <button onclick="openPlanModal()" class="px-3.5 py-2 rounded-xl bg-sage hover:bg-sageDark text-white text-xs sm:text-sm font-semibold shadow-sm transition">+ Plan Ekle</button>
+          </div>
         </div>
-        <button onclick="openPlanModal()" class="px-4 py-2.5 rounded-xl bg-sage hover:bg-sageDark text-white text-xs sm:text-sm font-semibold shadow-sm transition">+ Plan Ekle</button>
+
+        <!-- Haftanın Günleri -->
+        <div class="grid grid-cols-7 gap-1 text-center text-[11px] font-bold text-muted uppercase pb-2 border-b border-[#F2EDE4]">
+          <div>Pzt</div><div>Sal</div><div>Çar</div><div>Per</div><div>Cum</div><div>Cmt</div><div>Paz</div>
+        </div>
+
+        <!-- Takvim Günleri Izgarası -->
+        <div id="calendarGrid" class="grid grid-cols-7 gap-1.5 pt-2"></div>
       </div>
 
-      <div id="plannerGroups" class="space-y-5"></div>
-      <div id="plannerEmpty" class="hidden bg-white rounded-3xl border border-[#EAE4DA] p-10 text-center card-shadow">
-        <p class="font-serif text-base font-semibold text-ink">Henüz ileri tarihli bir plan yok</p>
-        <p class="text-xs text-muted mt-1">Sağ üstteki "+ Plan Ekle" butonundan yarın veya gelecek hafta için görev oluşturabilirsin.</p>
+      <!-- Seçili Günün Planları -->
+      <div class="bg-white rounded-3xl p-4 sm:p-5 border border-[#EAE4DA] card-shadow space-y-3">
+        <div class="flex items-center justify-between border-b border-[#F2EDE4] pb-3">
+          <div>
+            <span class="text-[11px] font-semibold uppercase tracking-wider text-sage">Seçili Gün Programı</span>
+            <h3 id="selectedDayTitle" class="font-serif text-lg font-semibold text-ink capitalize mt-0.5"></h3>
+          </div>
+          <button onclick="openPlanModal()" class="px-3 py-1.5 rounded-xl bg-sage/15 text-sageDark hover:bg-sage hover:text-white text-xs font-semibold transition">+ Bu Güne İş Ekle</button>
+        </div>
+
+        <div id="selectedDayTasks" class="space-y-2.5"></div>
       </div>
     </section>
 
     <!-- =====================================================================
-         SEKME 3: SONSUZ TUVAL (IPAD KALEM + PAN/ZOOM + SUPABASE KAYIT)
+         SEKME 3: SONSUZ TUVAL
          ===================================================================== -->
     <section id="sec-canvas" class="hidden space-y-3">
-      <!-- Araç Çubuğu -->
       <div class="bg-white rounded-2xl p-2.5 border border-[#EAE4DA] card-shadow flex flex-wrap items-center justify-between gap-2">
         <div class="flex items-center gap-1.5">
           <button onclick="setCanvasTool('pen')" id="toolPen" class="px-3 py-1.5 rounded-xl bg-ink text-white text-xs font-semibold transition">✒️ Kalem</button>
@@ -155,7 +203,6 @@
           <button onclick="setCanvasTool('pan')" id="toolPan" class="px-3 py-1.5 rounded-xl bg-sand text-ink text-xs font-semibold transition">✋ Gezin</button>
         </div>
 
-        <!-- Renkler -->
         <div class="flex items-center gap-1.5">
           <button onclick="setPenColor('#24221F')" class="color-dot w-6 h-6 rounded-full bg-[#24221F] ring-2 ring-offset-2 ring-ink"></button>
           <button onclick="setPenColor('#5B7C67')" class="color-dot w-6 h-6 rounded-full bg-[#5B7C67]"></button>
@@ -164,7 +211,6 @@
           <button onclick="setPenColor('#9333EA')" class="color-dot w-6 h-6 rounded-full bg-[#9333EA]"></button>
         </div>
 
-        <!-- Kalınlık & Kontroller -->
         <div class="flex items-center gap-2">
           <select id="penSize" class="px-2 py-1 rounded-lg bg-cream border border-[#E5DFD5] text-xs font-semibold">
             <option value="2">İnce</option>
@@ -178,7 +224,6 @@
         </div>
       </div>
 
-      <!-- Tuval Alanı -->
       <div class="relative w-full h-[68vh] bg-white rounded-3xl border border-[#EAE4DA] card-shadow overflow-hidden">
         <canvas id="infiniteCanvas" class="w-full h-full block"></canvas>
         <div class="absolute bottom-3 left-3 px-3 py-1 rounded-full bg-cream/90 border border-[#E5DFD5] text-[11px] text-muted pointer-events-none">
@@ -188,7 +233,7 @@
     </section>
 
     <!-- =====================================================================
-         SEKME 4: SEPETİM / İSTEK PANOSU (OTOMATİK LİNK ÇEKME)
+         SEKME 4: SEPETİM / İSTEK PANOSU
          ===================================================================== -->
     <section id="sec-wishlist" class="hidden space-y-5">
       <div class="flex flex-wrap items-center justify-between gap-3">
@@ -228,7 +273,7 @@
     <div class="bg-cream w-full max-w-sm rounded-3xl border border-[#E5DFD5] shadow-2xl p-6 text-center">
       <div class="w-12 h-12 rounded-2xl bg-sage/15 text-sage flex items-center justify-center mx-auto mb-3 text-xl">🌅</div>
       <h3 class="font-serif text-xl font-semibold text-ink">Yeni güne başlansın mı?</h3>
-      <p class="text-xs text-muted mt-2 leading-relaxed">Onayladığında dünkü liste sıfırlanır ve eğer Planlayıcı'da bugüne ait işlerin varsa otomatik olarak listene eklenir.</p>
+      <p class="text-xs text-muted mt-2 leading-relaxed">Onayladığında dünkü liste sıfırlanır ve eğer Takvim'de bugüne ait işlerin varsa otomatik olarak listene eklenir.</p>
       <div class="flex gap-2 mt-5">
         <button onclick="document.getElementById('newDayModal').classList.add('hidden')" class="flex-1 py-2.5 rounded-xl bg-sand text-ink text-xs font-semibold">Şimdi Değil</button>
         <button onclick="executeNewDayReset()" class="flex-1 py-2.5 rounded-xl bg-sage text-white text-xs font-semibold">Evet, Başla</button>
@@ -297,7 +342,6 @@
         <button onclick="closeWishModal()" class="w-8 h-8 rounded-full bg-sand text-muted">✕</button>
       </div>
 
-      <!-- Akıllı Link / Arama Kutusu -->
       <div class="bg-white p-3.5 rounded-2xl border border-[#E5DFD5] mb-4">
         <label class="block text-[11px] font-semibold uppercase text-sage mb-1.5">Ürün Linki Yapıştır veya Ara</label>
         <div class="flex gap-2">
@@ -352,7 +396,7 @@
 
   <script>
     // =========================================================================
-    // YAPILANDIRMA (BURAYA VERCEL URL'İNİ VE PIN KODUNU YAZ)
+    // YAPILANDIRMA
     // =========================================================================
     const CONFIG = {
       apiUrl: "https://metime-blond.vercel.app",
@@ -378,6 +422,11 @@
       return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
     };
 
+    // Takvim Durumu
+    let calViewYear = new Date().getFullYear();
+    let calViewMonth = new Date().getMonth();
+    let selectedCalDate = getTodayISO();
+
     document.getElementById('headerDateBadge').textContent = new Date().toLocaleDateString('tr-TR', {
       weekday: 'long', day: 'numeric', month: 'long'
     });
@@ -393,9 +442,23 @@
       );
     }
 
+    // Manuel veya Otomatik Sürüm + Veri Yenileme
+    async function forceAppUpdate() {
+      setSyncStatus('syncing', 'Güncelleniyor...');
+      if ('serviceWorker' in navigator) {
+        const regs = await navigator.serviceWorker.getRegistrations();
+        for (const r of regs) await r.unregister();
+      }
+      if ('caches' in window) {
+        const keys = await caches.keys();
+        for (const k of keys) await caches.delete(k);
+      }
+      await bootstrapFromCloud();
+    }
+
     async function cloudPost(bodyObj) {
       const base = CONFIG.apiUrl.replace(/\/+$/, '');
-      if (!base || base.includes('SENIN-VERCEL')) return;
+      if (!base) return;
       setSyncStatus('syncing', 'Kaydediliyor...');
       try {
         const res = await fetch(`${base}/api/sync`, {
@@ -404,21 +467,25 @@
           body: JSON.stringify(bodyObj)
         });
         const data = await res.json();
-        setSyncStatus(data.ok ? 'ok' : 'error', data.ok ? 'Supabase Eşitlendi' : 'Kayıt Hatası');
-      } catch (_) {
+        if (data.ok) {
+          setSyncStatus('ok', 'Supabase Eşitlendi');
+        } else {
+          console.error('Supabase Kayıt Hatası:', data.error);
+          setSyncStatus('error', 'Sunucu Hatası');
+        }
+      } catch (err) {
+        console.error('Bağlantı Hatası:', err);
         setSyncStatus('error', 'Çevrimdışı Kayıt');
       }
     }
 
     async function bootstrapFromCloud() {
       const base = CONFIG.apiUrl.replace(/\/+$/, '');
-      if (!base || base.includes('SENIN-VERCEL')) {
-        setSyncStatus('local', 'Yerel Mod (API URL Girilmedi)');
-        return;
-      }
+      if (!base) return;
       setSyncStatus('syncing', 'Eşitleniyor...');
       try {
         const res = await fetch(`${base}/api/sync?action=bootstrap&_t=${Date.now()}`, {
+          cache: 'no-store',
           headers: { 'x-sync-pin': CONFIG.pin }
         });
         const data = await res.json();
@@ -432,7 +499,7 @@
           localStorage.setItem(LS_KEYS.canvas, JSON.stringify(canvasStrokes));
           localStorage.setItem(LS_KEYS.wishlist, JSON.stringify(wishItems));
           renderToday();
-          renderPlanner();
+          renderCalendar();
           redrawCanvas();
           renderWishlist();
           setSyncStatus('ok', 'Supabase Bağlı');
@@ -459,10 +526,11 @@
         }
       });
       if (tabName === 'canvas') resizeCanvas();
+      if (tabName === 'planner') renderCalendar();
     }
 
     // =========================================================================
-    // 1. BUGÜN MODÜLÜ & YENİ GÜN RESET KONTROLÜ
+    // 1. BUGÜN MODÜLÜ
     // =========================================================================
     function checkNewDayPrompt() {
       const todayStr = getTodayISO();
@@ -485,7 +553,6 @@
       localStorage.setItem(LS_KEYS.lastDate, todayStr);
       document.getElementById('newDayModal').classList.add('hidden');
 
-      // Planlayıcıda bugüne ait planlanmış görevleri otomatik bugüne çek
       const todaysPlans = plannedTasks.filter(p => p.plan_date === todayStr);
       todayTasks = todaysPlans.map((p, idx) => ({
         id: 't_' + Date.now() + '_' + idx,
@@ -612,22 +679,136 @@
           </div>
 
           <div class="flex items-center gap-1 shrink-0">
-            <button onclick="moveTodayTask(${idx}, -1)" class="p-1.5 rounded-lg bg-sand text-xs text-ink hover:opacity-80" title="Yukarı Taşı">↑</button>
-            <button onclick="moveTodayTask(${idx}, 1)" class="p-1.5 rounded-lg bg-sand text-xs text-ink hover:opacity-80" title="Aşağı Taşı">↓</button>
-            <button onclick="deleteTodayTask('${t.id}')" class="p-1.5 rounded-lg bg-rose-50 text-rose-600 text-xs hover:bg-rose-100" title="Sil">✕</button>
+            <button onclick="moveTodayTask(${idx}, -1)" class="p-1.5 rounded-lg bg-sand text-xs text-ink hover:opacity-80">↑</button>
+            <button onclick="moveTodayTask(${idx}, 1)" class="p-1.5 rounded-lg bg-sand text-xs text-ink hover:opacity-80">↓</button>
+            <button onclick="deleteTodayTask('${t.id}')" class="p-1.5 rounded-lg bg-rose-50 text-rose-600 text-xs hover:bg-rose-100">✕</button>
           </div>
         </div>
       `).join('');
     }
 
     // =========================================================================
-    // 2. PLANLAYICI MODÜLÜ (GELECEK GÜNLER & GÜN TAŞIMA)
+    // 2. TAM AYLIK TAKVİM & PLANLAYICI MODÜLÜ
     // =========================================================================
+    function changeCalendarMonth(delta) {
+      calViewMonth += delta;
+      if (calViewMonth > 11) { calViewMonth = 0; calViewYear++; }
+      if (calViewMonth < 0) { calViewMonth = 11; calViewYear--; }
+      renderCalendar();
+    }
+
+    function jumpToTodayCalendar() {
+      const now = new Date();
+      calViewYear = now.getFullYear();
+      calViewMonth = now.getMonth();
+      selectedCalDate = getTodayISO();
+      renderCalendar();
+    }
+
+    function selectCalendarDay(dateStr) {
+      selectedCalDate = dateStr;
+      renderCalendar();
+    }
+
+    function renderCalendar() {
+      const monthNames = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
+      document.getElementById('calMonthTitle').textContent = `${monthNames[calViewMonth]} ${calViewYear}`;
+
+      const grid = document.getElementById('calendarGrid');
+      const firstDayObj = new Date(calViewYear, calViewMonth, 1);
+      // Pazartesi = 0 ... Pazar = 6
+      let startWeekday = firstDayObj.getDay() - 1;
+      if (startWeekday < 0) startWeekday = 6;
+
+      const daysInMonth = new Date(calViewYear, calViewMonth + 1, 0).getDate();
+      const todayISO = getTodayISO();
+
+      // Tarihe göre iş sayılarını haritala
+      const countByDate = {};
+      plannedTasks.forEach(p => {
+        countByDate[p.plan_date] = (countByDate[p.plan_date] || 0) + 1;
+      });
+
+      let cellsHtml = '';
+      for (let i = 0; i < startWeekday; i++) {
+        cellsHtml += `<div class="h-14 sm:h-16 rounded-2xl bg-cream/40"></div>`;
+      }
+
+      for (let day = 1; day <= daysInMonth; day++) {
+        const dateStr = `${calViewYear}-${String(calViewMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        const isSelected = dateStr === selectedCalDate;
+        const isToday = dateStr === todayISO;
+        const taskCount = countByDate[dateStr] || 0;
+
+        let cellClass = 'bg-cream hover:bg-sand/80 text-ink border-transparent';
+        if (isSelected) cellClass = 'bg-ink text-white border-ink shadow-sm';
+        else if (isToday) cellClass = 'bg-sage/15 text-sageDark border-sage/40 font-bold';
+
+        cellsHtml += `
+          <button onclick="selectCalendarDay('${dateStr}')"
+            class="h-14 sm:h-16 rounded-2xl border p-1.5 flex flex-col items-center justify-between transition ${cellClass}">
+            <span class="text-xs sm:text-sm font-semibold">${day}</span>
+            ${taskCount > 0
+              ? `<span class="px-1.5 py-0.5 rounded-full text-[10px] font-bold ${isSelected ? 'bg-sage text-white' : 'bg-terracotta/15 text-terracotta'}">${taskCount} iş</span>`
+              : `<span class="h-3"></span>`}
+          </button>
+        `;
+      }
+
+      grid.innerHTML = cellsHtml;
+      renderSelectedDayTasks();
+    }
+
+    function renderSelectedDayTasks() {
+      const titleEl = document.getElementById('selectedDayTitle');
+      const container = document.getElementById('selectedDayTasks');
+
+      const formattedDate = new Date(selectedCalDate + 'T00:00:00').toLocaleDateString('tr-TR', {
+        weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+      });
+      titleEl.textContent = formattedDate;
+
+      const dayTasks = plannedTasks
+        .filter(p => p.plan_date === selectedCalDate)
+        .sort((a, b) => (a.start_time || '99:99').localeCompare(b.start_time || '99:99'));
+
+      if (dayTasks.length === 0) {
+        container.innerHTML = `
+          <div class="py-6 text-center text-xs text-muted bg-cream rounded-2xl border border-dashed border-[#DFD8CC]">
+            Bu gün için henüz planlanmış bir iş yok. Sağ üstten ekleyebilirsin.
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = dayTasks.map(p => `
+        <div class="p-3.5 rounded-2xl bg-cream border border-[#EAE4DA] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div class="space-y-1">
+            <div class="flex flex-wrap items-center gap-2">
+              ${p.start_time ? `<span class="px-2 py-0.5 rounded-md bg-ink text-white text-[11px] font-bold">🕒 ${p.start_time}</span>` : ''}
+              ${p.duration ? `<span class="px-2 py-0.5 rounded-md bg-sand text-ink text-[11px] font-semibold">⏱ ${p.duration}</span>` : ''}
+              <span class="font-semibold text-sm text-ink">${p.title}</span>
+            </div>
+            ${p.details ? `<p class="text-xs text-muted">${p.details}</p>` : ''}
+            <div class="text-[11px] text-muted font-medium">Önem: <strong class="text-ink">${p.priority}</strong> • Kategori: <strong class="text-ink">${p.category}</strong></div>
+          </div>
+          <div class="flex flex-wrap items-center gap-1.5 shrink-0">
+            <label class="px-2.5 py-1.5 rounded-xl bg-white border border-[#E5DFD5] text-[11px] font-semibold text-ink cursor-pointer">
+              📅 Taşı:
+              <input type="date" value="${p.plan_date}" onchange="movePlanDate('${p.id}', this.value)" class="bg-transparent text-[11px] focus:outline-none ml-1" />
+            </label>
+            <button onclick="sendPlanToToday('${p.id}')" class="px-2.5 py-1.5 rounded-xl bg-sage/15 text-sageDark text-[11px] font-semibold hover:bg-sage hover:text-white transition">☀️ Bugüne Al</button>
+            <button onclick='openPlanModal(${JSON.stringify(p).replace(/'/g, "&#39;")})' class="p-1.5 rounded-xl bg-white border border-[#E5DFD5] text-xs">✎</button>
+            <button onclick="deletePlannedTask('${p.id}')" class="p-1.5 rounded-xl bg-rose-50 text-rose-600 text-xs">✕</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
     function openPlanModal(item = null) {
       document.getElementById('pEditId').value = item ? item.id : '';
       document.getElementById('planModalTitle').textContent = item ? 'Planı Düzenle' : 'Yeni Gün Planı';
-      const tomorrow = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
-      document.getElementById('pDate').value = item ? item.plan_date : tomorrow;
+      document.getElementById('pDate').value = item ? item.plan_date : selectedCalDate;
       document.getElementById('pTitle').value = item ? item.title : '';
       document.getElementById('pDetails').value = item ? (item.details || '') : '';
       document.getElementById('pTime').value = item ? (item.start_time || '') : '';
@@ -644,22 +825,28 @@
     async function savePlannedTask(e) {
       e.preventDefault();
       const editId = document.getElementById('pEditId').value;
+      const chosenDate = document.getElementById('pDate').value;
       const obj = {
         id: editId || 'p_' + Date.now(),
-        plan_date: document.getElementById('pDate').value,
+        plan_date: chosenDate,
         title: document.getElementById('pTitle').value.trim(),
         details: document.getElementById('pDetails').value.trim(),
-        start_time: document.getElementById('pTime').value,
-        duration: document.getElementById('pDuration').value.trim(),
-        priority: document.getElementById('pPriority').value,
+        start_time: document.getElementById('pTime').value || '',
+        duration: document.getElementById('pDuration').value.trim() || '',
+        priority: document.getElementById('pPriority').value || 'Orta',
         category: document.getElementById('pCategory').value.trim() || 'Genel'
       };
       if (editId) plannedTasks = plannedTasks.map(x => x.id === editId ? obj : x);
       else plannedTasks.push(obj);
 
+      selectedCalDate = chosenDate;
+      const dObj = new Date(chosenDate + 'T00:00:00');
+      calViewYear = dObj.getFullYear();
+      calViewMonth = dObj.getMonth();
+
       localStorage.setItem(LS_KEYS.planned, JSON.stringify(plannedTasks));
       closePlanModal();
-      renderPlanner();
+      renderCalendar();
       await cloudPost({ entity: 'planned', op: 'upsert', payload: obj });
     }
 
@@ -674,7 +861,7 @@
         return p;
       });
       localStorage.setItem(LS_KEYS.planned, JSON.stringify(plannedTasks));
-      renderPlanner();
+      renderCalendar();
       if (target) await cloudPost({ entity: 'planned', op: 'upsert', payload: target });
     }
 
@@ -699,72 +886,12 @@
     async function deletePlannedTask(id) {
       plannedTasks = plannedTasks.filter(x => x.id !== id);
       localStorage.setItem(LS_KEYS.planned, JSON.stringify(plannedTasks));
-      renderPlanner();
+      renderCalendar();
       await cloudPost({ entity: 'planned', op: 'delete', id });
     }
 
-    function renderPlanner() {
-      const container = document.getElementById('plannerGroups');
-      const empty = document.getElementById('plannerEmpty');
-      if (plannedTasks.length === 0) {
-        container.innerHTML = '';
-        empty.classList.remove('hidden');
-        return;
-      }
-      empty.classList.add('hidden');
-
-      const sorted = [...plannedTasks].sort((a, b) =>
-        (a.plan_date + (a.start_time || '99:99')).localeCompare(b.plan_date + (b.start_time || '99:99'))
-      );
-
-      const groups = {};
-      sorted.forEach(item => {
-        if (!groups[item.plan_date]) groups[item.plan_date] = [];
-        groups[item.plan_date].push(item);
-      });
-
-      container.innerHTML = Object.entries(groups).map(([dateStr, list]) => {
-        const formattedDate = new Date(dateStr + 'T00:00:00').toLocaleDateString('tr-TR', {
-          weekday: 'long', day: 'numeric', month: 'long'
-        });
-
-        return `
-          <div class="bg-white rounded-3xl p-4 sm:p-5 border border-[#EAE4DA] card-shadow space-y-3">
-            <div class="flex items-center justify-between border-b border-[#F2EDE4] pb-2.5">
-              <h3 class="font-serif text-base font-semibold text-ink capitalize">${formattedDate}</h3>
-              <span class="text-xs font-semibold text-sage">${list.length} plan</span>
-            </div>
-            <div class="space-y-2.5">
-              ${list.map(p => `
-                <div class="p-3.5 rounded-2xl bg-cream border border-[#EAE4DA] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <div class="space-y-1">
-                    <div class="flex flex-wrap items-center gap-2">
-                      ${p.start_time ? `<span class="px-2 py-0.5 rounded-md bg-ink text-white text-[11px] font-bold">🕒 ${p.start_time}</span>` : ''}
-                      ${p.duration ? `<span class="px-2 py-0.5 rounded-md bg-sand text-ink text-[11px] font-semibold">⏱ ${p.duration}</span>` : ''}
-                      <span class="font-semibold text-sm text-ink">${p.title}</span>
-                    </div>
-                    ${p.details ? `<p class="text-xs text-muted">${p.details}</p>` : ''}
-                    <div class="text-[11px] text-muted font-medium">Önem: <strong class="text-ink">${p.priority}</strong> • Kategori: <strong class="text-ink">${p.category}</strong></div>
-                  </div>
-                  <div class="flex flex-wrap items-center gap-1.5 shrink-0">
-                    <label class="px-2.5 py-1.5 rounded-xl bg-white border border-[#E5DFD5] text-[11px] font-semibold text-ink cursor-pointer">
-                      📅 Taşı:
-                      <input type="date" value="${p.plan_date}" onchange="movePlanDate('${p.id}', this.value)" class="bg-transparent text-[11px] focus:outline-none ml-1" />
-                    </label>
-                    <button onclick="sendPlanToToday('${p.id}')" class="px-2.5 py-1.5 rounded-xl bg-sage/15 text-sageDark text-[11px] font-semibold hover:bg-sage hover:text-white transition">☀️ Bugüne Al</button>
-                    <button onclick='openPlanModal(${JSON.stringify(p).replace(/'/g, "&#39;")})' class="p-1.5 rounded-xl bg-white border border-[#E5DFD5] text-xs">✎</button>
-                    <button onclick="deletePlannedTask('${p.id}')" class="p-1.5 rounded-xl bg-rose-50 text-rose-600 text-xs">✕</button>
-                  </div>
-                </div>
-              `).join('')}
-            </div>
-          </div>
-        `;
-      }).join('');
-    }
-
     // =========================================================================
-    // 3. SONSUZ TUVAL (IPAD KALEM + PAN/ZOOM + SUPABASE KAYIT)
+    // 3. SONSUZ TUVAL
     // =========================================================================
     const canvas = document.getElementById('infiniteCanvas');
     const ctx = canvas.getContext('2d');
@@ -810,10 +937,7 @@
     }
 
     function screenToWorld(sx, sy) {
-      return {
-        x: (sx - cam.x) / cam.zoom,
-        y: (sy - cam.y) / cam.zoom
-      };
+      return { x: (sx - cam.x) / cam.zoom, y: (sy - cam.y) / cam.zoom };
     }
 
     function redrawCanvas() {
@@ -821,7 +945,6 @@
       if (!rect.width) return;
       ctx.clearRect(0, 0, rect.width, rect.height);
 
-      // Sonsuz noktalı defter ızgarası
       const gridStep = 32 * cam.zoom;
       if (gridStep > 8) {
         ctx.fillStyle = '#E5DFD5';
@@ -874,7 +997,6 @@
       const sy = e.clientY - rect.top;
       activePointers.set(e.pointerId, { x: sx, y: sy });
 
-      // İki parmak dokunuşu varsa otomatik gezinme/zoom moduna geç (iPad Palm Rejection)
       if (activePointers.size >= 2) {
         isDrawing = false;
         currentStroke = null;
@@ -990,7 +1112,7 @@
     }
 
     // =========================================================================
-    // 4. SEPETİM / İSTEK PANOSU (OTOMATİK LİNK ÇEKME)
+    // 4. SEPETİM / İSTEK PANOSU
     // =========================================================================
     let wDebounce = null;
     function openWishModal(item = null) {
@@ -1174,7 +1296,7 @@
 
     // Başlangıç
     renderToday();
-    renderPlanner();
+    renderCalendar();
     renderWishlist();
     checkNewDayPrompt();
     bootstrapFromCloud();
